@@ -3,27 +3,22 @@ console.log("CF notifier service worker started");
 let lastSubmissionId = null;
 let lastVerdict = null;
 
-// convert raw CF verdict -> clean text with emoji
+// ---------- VERDICT FORMATTER ----------
+
 function prettyVerdict(verdict) {
     switch (verdict) {
-        case "OK":
-            return "✅ Accepted";
-        case "WRONG_ANSWER":
-            return "❌ Wrong Answer";
-        case "TIME_LIMIT_EXCEEDED":
-            return "🕒 Time Limit Exceeded";
-        case "COMPILATION_ERROR":
-            return "⚙️ Compilation Error";
-        case "RUNTIME_ERROR":
-            return "💥 Runtime Error";
-        case "MEMORY_LIMIT_EXCEEDED":
-            return "🚫 Memory Limit Exceeded";
-        case "IDLENESS_LIMIT_EXCEEDED":
-            return "💤 Idleness Limit Exceeded";
-        default:
-            return verdict;   // leave any unusual verdicts exactly as CF writes them
+        case "OK": return "✅ Accepted";
+        case "WRONG_ANSWER": return "❌ Wrong Answer";
+        case "TIME_LIMIT_EXCEEDED": return "🕒 Time Limit Exceeded";
+        case "COMPILATION_ERROR": return "⚙️ Compilation Error";
+        case "RUNTIME_ERROR": return "💥 Runtime Error";
+        case "MEMORY_LIMIT_EXCEEDED": return "🚫 Memory Limit Exceeded";
+        case "IDLENESS_LIMIT_EXCEEDED": return "💤 Idleness Limit Exceeded";
+        default: return verdict;
     }
 }
+
+// ---------- CORE CHECK FUNCTION ----------
 
 async function check() {
     const data = await chrome.storage.sync.get("handle");
@@ -43,17 +38,16 @@ async function check() {
         const id = sub.id;
         const verdict = sub.verdict || "IN_QUEUE";
 
-        // build "A. Theatre Square"
         const problemTitle = `${sub.problem.index}. ${sub.problem.name}`;
 
-        // first time only → just initialize
+        // first run -> just initialize
         if (lastSubmissionId === null) {
             lastSubmissionId = id;
             lastVerdict = verdict;
             return;
         }
 
-        // new submission appeared
+        // new submission detected
         if (id !== lastSubmissionId) {
             lastSubmissionId = id;
             lastVerdict = verdict;
@@ -73,13 +67,12 @@ async function check() {
         }
 
     } catch (e) {
-        console.log(e);
+        console.log("CF check error:", e);
     }
 }
 
-// Notification format:
-// Title  -> A. Theatre Square
-// Body   -> ✅ Accepted
+// ---------- NOTIFICATION + SOUND ----------
+
 function notify(problemTitle, verdictText) {
     chrome.notifications.create({
         type: "basic",
@@ -87,8 +80,66 @@ function notify(problemTitle, verdictText) {
         message: verdictText,
         iconUrl: "icon.png"
     });
+
+    // sound mapping
+    if (verdictText.includes("Accepted")) {
+        playSound("play-ac");
+    } else {
+        playSound("play-fail");
+    }
 }
 
-// run every ~7 seconds
-chrome.alarms.create({ periodInMinutes: 0.12 });
+// ---------- SOUND HANDLING (Supports new + old Chrome) ----------
+
+let soundWindowId = null;
+
+async function ensureSoundTarget() {
+    try {
+        if (chrome.offscreen) {
+            const has = await chrome.offscreen.hasDocument();
+            if (!has) {
+                await chrome.offscreen.createDocument({
+                    url: "sound.html",
+                    reasons: ["AUDIO_PLAYBACK"],
+                    justification: "Play verdict notification sounds"
+                });
+            }
+            return;
+        }
+    } catch (_) {}
+
+    // fallback window for older Chrome
+    if (soundWindowId === null) {
+        const win = await chrome.windows.create({
+            url: chrome.runtime.getURL("sound.html"),
+            focused: false,
+            state: "minimized"
+        });
+        soundWindowId = win.id;
+    }
+}
+
+async function playSound(type) {
+    await ensureSoundTarget();
+
+    // wrap in try and suppress harmless connection errors
+    try {
+        chrome.runtime.sendMessage({ type }, () => {
+            const err = chrome.runtime.lastError;
+            if (err) {
+                // retry once after listener is fully ready
+                setTimeout(() => {
+                    chrome.runtime.sendMessage({ type }, () => {});
+                }, 200);
+            }
+        });
+    } catch (_) {
+        // ignore – service worker sometimes wakes/sleeps
+    }
+}
+
+
+// ---------- TIMER ----------
+
+chrome.alarms.create({ periodInMinutes: 0.05 });
 chrome.alarms.onAlarm.addListener(check);
