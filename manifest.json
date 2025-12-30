@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "Codeforces Verdict Notifier",
+    "version": "1.0",
+    "description": "Shows notifications when your Codeforces submission verdict is ready.",
+    "permissions": [
+        "notifications",
+        "alarms",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://codeforces.com/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "options_page": "options.html"
+}
