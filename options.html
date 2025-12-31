@@ -1,14 +1,47 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h3>Codeforces Notifier</h3>
+<head>
+  <meta charset="UTF-8">
+  <title>Codeforces Notifier – Options</title>
 
-    <label>Enter your Codeforces handle:</label>
-    <input id="handle" type="text" />
-    <button id="save">Save</button>
+  <!-- CSS file -->
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
 
-    <p id="status"></p>
+  <!-- background blur overlay -->
+  <div class="backdrop"></div>
 
-    <script src="options.js"></script>
-  </body>
+  <!-- glass modal -->
+  <div class="modal">
+
+    <div class="modal-header">
+      <span>Set Username</span>
+      <button class="close-btn">×</button>
+    </div>
+
+    <label>Codeforces Username</label>
+
+    <input
+      type="text"
+      id="handleInput"
+      placeholder="Enter your Codeforces username"
+    >
+
+    <p class="hint">
+      This will be used to identify you for verdict notifications
+    </p>
+
+    <div class="actions">
+      <button class="secondary-btn">Cancel</button>
+      <button class="primary-btn" id="saveBtn">Set Username</button>
+    </div>
+
+    <div id="status"></div>
+
+  </div>
+
+  <script src="options.js"></script>
+</body>
+
 </html>

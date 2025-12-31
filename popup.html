@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>CF Notifier</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+
+    <div class="modal-header">
+        <span>Codeforces Notifier</span>
+    </div>
+
+    <label>Enter your Codeforces Handle: </label>
+
+    <input type="text" id="handleInput" placeholder="Enter your Codeforces handle">
+
+    <div class="toggle-row">
+        <label class="switch">
+            <input type="checkbox" id="toggleNotifier">
+            <span class="slider"></span>
+        </label>
+
+        <span class="toggle-text">Verdict alerts</span>
+    </div>
+
+    <div class="actions">
+        <button id="saveBtn">Save</button>
+    </div>
+
+    <div id="status"></div>
+
+    <script src="popup.js"></script>
+
+</body>
+
+</html>

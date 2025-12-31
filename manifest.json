@@ -27,5 +27,15 @@
                 "<all_urls>"
             ]
         }
-    ]
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "CF Verdict Notifier",
+        "default_icon": {
+            "128": "icon.png"
+        }
+    },
+    "icons": {
+        "128": "icon.png"
+    }
 }
